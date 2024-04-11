@@ -1,0 +1,106 @@
+Qué es un ataque de XSS o Cross-Site Scripting
+Repasamos qué es un ataque de cross site scripting, qué puede hacer un atacante explotando esta vulnerabilidad, y qué herramientas hay disponibles para detectar su presencia o explotación.
+
+Jorge Báez
+Jorge Báez
+
+28 Sep 2021  •  7 min. read
+
+Qué es un ataque de XSS o Cross-Site Scripting
+En este post vamos a hablar sobre Cross Site Scripting, también conocida como XSS, una de las vulnerabilidades más comunes desde 2014. De hecho, según OWASP, esta vulnerabilidad que a partir de este año será incluida dentro de la categoría de inyecciones, forma parte del top 10 de vulnerabilidades más frecuentes en aplicaciones web de 2021.
+
+Se trata de un tipo de ataque que aprovecha fallas de seguridad en sitios web y que permite a los atacantes implantar scripts maliciosos en un sitio web legítimo (también víctima del atacante) para ejecutar un script en el navegador de un usuario desprevenido que visita dicho sitio y afectarlo, ya sea robando credenciales, redirigiendo al usuario a otro sitio malicioso, o para realizar defacement en un sitio web.
+
+Hace algunos años explicamos en otro artículo de forma sencilla de qué se trata esta vulnerabilidad, pero en ese momento hablábamos de que podía ser explotada de dos maneras. En la actualidad, OWASP explica que son tres las formas de ataques de XSS más comunes que apuntan a los navegadores de los usuarios. Por eso, en este artículo actualizado repasamos cuáles son los vectores de ataque utilizados por los atacantes para explotar esta vulnerabilidad, qué puede realizar un atacante mediante Cross Site Scripting, y compartimos también algunos recursos que probablemente no conocías para identificar la vulnerabilidad o la explotación de la misma. Para tener una idea del impacto y el interés que los atacantes mantienen por esta vulnerabilidad, el último año más de 100.000 reportes de ataques de Cross Site Scripting según Vulners.
+
+Qué es Cross-Site Scripting
+Como adelantábamos más arriba, se conoce como  XSS a un tipo de ataque en el cual actores maliciosos logran inyectar un script malicioso en un sitio web para luego ser procesado y ejecutado. Comúnmente, este proceso que se basa en la confianza que tiene el sitio sobre la entrada de los datos, consiste en enviar la URL con el payload precargado al usuario víctima con un objetivo determinado: robar datos personales del usuario, cookies de sesión, implementar técnicas de ingeniería social, entre otras.
+
+Existen tres tipos de XSS qué permiten que se lleve a cabo este ataque. A continuación, repasamos cuáles son y las medidas que deberíamos tomar para poder protegernos:
+
+Reflected Cross-Site Scripting
+En un ataque de XSS reflejado el payload suele ser inyectado en un parámetro de la solicitud HTTP, para luego ser procesado por la aplicación web y finalmente desplegado en un punto determinado, sin algún tipo de validación o codificación de los caracteres. Se trata de la variedad de XSS más simple y el script malicioso que busca afectar el navegador de la víctima es fácilmente modificable, probablemente sin que el usuario note el ataque.
+
+Como se puede observar en el siguiente ejemplo, se crea un enlace de apariencia normal sin un parámetro marcado y se observa un vector de ataque delimitado por el control del número de página del sitio.
+
+https://insecure-site.example/blog/page/1/latest
+
+El punto vulnerable en este caso es un parámetro que no es detectable a simple vista, pero alguna aplicación podría estar utilizando el valor proveniente de la URL para poder utilizarlo en el sitio, y así dar origen a la vulnerabilidad Reflected Cross-Site Scripting.
+
+
+Imagen 1. Ejemplo de una aplicación web vulnerable a XSS reflejado.
+
+Stored Cross-Site Scripting
+Esta variante tiene como característica que la aplicación web guarda el valor de entrada en un medio de almacenamiento y persiste el script inofensivo, hasta que el valor es recuperado por la aplicación y utilizado para conformar parte del documento HTML.
+
+Los puntos de entrada más conocidos en los cuales se suele observar esta vulnerabilidad están en los comentarios de sitios web, entradas de blog, nombres de usuario, chats, formularios de contacto, detalle de alguna orden, etc. Y así como existen diversos valores de entrada, un XSS persistente podría llegar de distintos medios. La respuesta del protocolo HTTP es el más común, así como mensajes mediante SMTP, servicios de mensajería instantánea, notificaciones vía socket, por mencionar algunos.
+
+
+Imagen 2. Ejemplo de XSS almacenado.
+
+DOM-based Cross-Site Scripting
+El Document Object Model (DOM) es una interfaz de programación para representar la estructura de un documento web y conectarlo con un lenguaje de scripting. En este sentido, el DOM facilita la estructura de documentos como HTML o XML y permite a los programas modificar la estructura, estilo y contenido del documento. En el caso de un ataque de XSS basado en DOM el payload malicioso es ejecutado como resultado de la modificación del entorno DOM en el navegador de la víctima. Esto lleva a que el usuario ejecute código desde el lado del cliente sin saber que lo está haciendo.
+
+A partir de la evolución de muchas librerías de JavaScript es cada vez más común que se implemente el proceso de los datos desde fuentes no confiables (insegura o sin la adecuada codificación de los datos) desde el lado del cliente, usualmente escribiendo estos datos en el DOM del sitio web.
+
+Algunas funciones en JavaScript que pueden ser un indicador de un posible punto vulnerable son:
+
+domain
+write()
+writeln()
+innerHTML
+insertAdjacentHTML
+onevent
+Element.outerHTML
+Sin olvidar las librerías como JQuery, en donde utiliza métodos específicos para facilitar algunas funciones tradicionales del propio JavaScript, u otras librerías sin la adecuada codificación de los datos:
+
+$.parseHTML()
+add()
+after()
+animate()
+append()
+before()
+constructor()
+has()
+html()
+index()
+init()
+insertAfter()
+insertBefore()
+parseHTML()
+prepend()
+replaceAll()
+replaceWith()
+wrap()
+wrapAll()
+wrapInner()
+
+Imagen 3. Ejemplo DOM XSS.
+
+Evolución del XSS
+Desde la primera aparición de la vulnerabilidad se han realizado muchas investigaciones al respecto y conforme evolucionan los lenguajes de programación se van creando nuevas formas de explotar un Cross-Site Scripting, ya que existen diversos lenguajes de programación y nuevos estilos para el desarrollo web. Un caso muy interesante se conoció con el uso de JSFuck, un estilo de programación con solo seis caracteres, ya que con el mínimo de caracteres tomando como base el propio lenguaje JavaScript es posible crear y ejecutar código JavaScript. Es importante tener en cuenta este estilo de programar a la hora de tomar medidas para mitigar cualquier tipo de Cross-Site Scripting.
+
+¿Qué podrían hacer los atacantes si explotan esta vulnerabilidad?
+Si te has preguntado si un atacante únicamente podría realizar un defacement del sitio en el que estas navegando, robar algunos datos que estén utilizando en la aplicación web vulnerable, o robar cookies de sesión —tal como sucedió en el ataque reciente que derivó en el robo del código fuente de FIFA 21 en el que utilizaron como vector inicial cookies de sesión de un canal de Slack—, la realidad indica que no. Existen diversos ataques por medio del uso de JavaScript. Por ejemplo, es posible leer la memoria de algunos procesos del usuario, como en el ataque Rowhammer que tiene como víctima a la tecnología DDR4, realizar ataques de ransomware, exfiltrar datos sensibles en un documento PDF, o realizar escaneo de la red. Dependiendo el vector vulnerable, una vulnerabilidad de XSS podrían derivar en cualquiera de los ataques antes mencionados.
+
+Herramientas para identificar ataques y la explotación de Cross Site Scripting
+Por suerte, existen muchas herramientas para identificar un ataque de Cross-Site Scripting e incluso la explotación utilizando scripts elaborados para diversos usos. Aquí es donde el framework Beef entra en acción con la amplia gama de scripts disponibles. A continuación se listan los más usuales.
+
+epsylon/xsser
+s0md3v/XSStrike
+ssl/ezXSS
+beefproject
+Medidas preventivas
+OWASP nos ofrece un modelo preventivo bajo algunas reglas que deberíamos tomar en cuenta para evitar la ejecución de comandos en el navegador (XSS). Las mismas se describen de forma general a continuación:
+
+Implementar una política de seguridad bajo el encabezado CSP (Content Secure Policy) considerando al menos los siguientes puntos:
+Evitar la ejecución de scripts insertados en HTML
+Prevenir la carga de scripts de una fuente desconocida
+Evitar el uso de funciones inseguras como Eval
+Restringir el uso del tag HTML object
+Establecer el atributo de seguridad HttpOnly para reducir el impacto del ataque XSS
+Validar cualquier dato de entrada bajo una lista blanca de caracteres permitidos
+Codificar la salida de los datos, al menos para los caracteres especiales (&, <, >, “, ‘), en su respectivo código HTML según el contexto, ya sea JavaScript, CSS, HTML
+Utilizar las librerías para sanitizar los datos como HtmlSanitizer
+Prueba tus habilidades para explotar un Cross-Site Scripting
+Si te sientes muy motivado para poder conocer y descubrir nuevas formas para poder explotar una vulnerabilidad de XSS y así poder aplicar las medidas correctivas adecuadas, compartimos ejercicios y retos muy buenos, algunos que explican el paso a paso, así como otros muy divertidos para pensar un poco más.
